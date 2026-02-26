@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NDMESSAGE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+        @media (max-width: 768px) {
+            .sidebar-active .sidebar { display: block; width: 100%; }
+            .sidebar-active .chat-area { display: none; }
+            .chat-active .sidebar { display: none; }
+            .chat-active .chat-area { display: block; width: 100%; }
+        }
+        /* Animation de chargement */
+        #loading-screen { transition: opacity 0.5s ease-out; }
+    </style>
+</head>
+<body class="bg-[#111b21] text-gray-200 h-screen overflow-hidden sidebar-active">
+
+    <div id="loading-screen" class="fixed inset-0 z-[1000] bg-[#111b21] flex flex-col items-center justify-center">
+        <div class="mb-8">
+            <i data-lucide="message-square" class="w-16 h-16 text-[#00a884]"></i>
+        </div>
+        <div class="w-48 h-1 bg-[#202c33] rounded-full overflow-hidden">
+            <div class="h-full bg-[#00a884] animate-[progress_2s_ease-in-out]"></div>
+        </div>
+        <h1 class="mt-4 text-xl font-light text-gray-400">NDMESSAGE</h1>
+        <div class="absolute bottom-10 flex items-center text-gray-500 text-sm">
+            <i data-lucide="lock" class="w-3 h-3 mr-2"></i> Chiffré de bout en bout
+        </div>
+    </div>
+
+    <div class="flex h-full w-full">
+        <aside class="sidebar w-full md:w-[30%] lg:w-[25%] border-r border-gray-700 flex flex-col bg-[#111b21]">
+            <div class="p-4 bg-[#202c33] flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <img src="https://ui-avatars.com/api/?name=Moi&background=random" class="w-10 h-10 rounded-full" alt="Avatar">
+                    <span class="font-bold text-[#00a884]">NDMESSAGE</span>
+                </div>
+                <div class="flex space-x-4 text-gray-400">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    <i data-lucide="circle-dashed" class="w-5 h-5"></i>
+                    <i data-lucide="more-vertical" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <div class="p-2 bg-[#111b21]">
+                <div class="bg-[#202c33] flex items-center px-4 py-1.5 rounded-lg border-b border-transparent focus-within:border-[#00a884]">
+                    <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
+                    <input type="text" placeholder="Rechercher ou démarrer une discussion" 
+                           class="bg-transparent border-none text-sm w-full focus:ring-0 ml-4 outline-none">
+                </div>
+            </div>
+
+            <div id="contact-list" class="flex-1 overflow-y-auto">
+                <div onclick="selectContact('KONATE SHOP', 'En ligne')" 
+                     class="flex items-center p-3 hover:bg-[#202c33] cursor-pointer border-b border-gray-800 transition">
+                    <img src="https://ui-avatars.com/api/?name=KS&background=ff5733" class="w-12 h-12 rounded-full">
+                    <div class="ml-4 flex-1">
+                        <div class="flex justify-between">
+                            <h3 class="font-semibold text-gray-100">KONATE SHOP 🛍️</h3>
+                            <span class="text-xs text-[#00a884]">21:37</span>
+                        </div>
+                        <p class="text-sm text-gray-500 truncate italic">Écrit moi sur WhatsApp...</p>
+                    </div>
+                </div>
+                <div onclick="selectContact('Maman', 'En ligne')" class="flex items-center p-3 hover:bg-[#202c33] cursor-pointer border-b border-gray-800 transition">
+                    <img src="https://ui-avatars.com/api/?name=Maman&background=random" class="w-12 h-12 rounded-full">
+                    <div class="ml-4 flex-1">
+                        <div class="flex justify-between">
+                            <h3 class="font-semibold text-gray-100">Maman</h3>
+                            <span class="text-xs text-gray-500">10:45</span>
+                        </div>
+                        <p class="text-sm text-gray-500 truncate">À quelle heure tu rentres de Macaci ?</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="chat-area flex-1 flex flex-col bg-[#0b141a] relative">
+            <header class="p-3 bg-[#202c33] flex justify-between items-center shadow-md z-10">
+                <div class="flex items-center">
+                    <button onclick="backToSidebar()" class="md:hidden mr-3"><i data-lucide="arrow-left"></i></button>
+                    <img id="chat-avatar" src="https://ui-avatars.com/api/?name=KS&background=ff5733" class="w-10 h-10 rounded-full">
+                    <div class="ml-4">
+                        <h2 id="chat-name" class="font-semibold text-gray-100 leading-tight">KONATE SHOP 🛍️</h2>
+                        <p id="chat-status" class="text-xs text-[#00a884]">En ligne</p>
+                    </div>
+                </div>
+                <div class="flex space-x-6 text-gray-400 mr-2">
+                    <i data-lucide="search" class="w-5 h-5 cursor-pointer"></i>
+                    <i data-lucide="more-vertical" class="w-5 h-5 cursor-pointer"></i>
+                </div>
+            </header>
+
+            <div id="messages-container" class="flex-1 overflow-y-auto p-6 space-y-4 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-opacity-5">
+                <div class="flex justify-center mb-4">
+                    <span class="bg-[#182229] text-[11px] text-gray-400 px-3 py-1 rounded-md uppercase tracking-wider">Aujourd'hui</span>
+                </div>
+                <div class="flex justify-start">
+                    <div class="bg-[#202c33] text-gray-200 p-2.5 rounded-lg rounded-tl-none max-w-xs shadow-md text-[14px] relative">
+                        Oui c'est toujours dispo. Tu es prêt pour l'achat ?
+                        <span class="block text-[10px] text-right text-gray-500 mt-1">21:37</span>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="p-3 bg-[#202c33] flex items-center space-x-4">
+                <div class="flex space-x-3 text-gray-400">
+                    <i data-lucide="smile" class="cursor-pointer"></i>
+                    <i data-lucide="paperclip" class="cursor-pointer"></i>
+                </div>
+                <input id="msg-input" type="text" placeholder="Tapez un message" 
+                       class="flex-1 bg-[#2a3942] border-none rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-0 text-white">
+                <div id="action-btn" onclick="sendMessage()" class="cursor-pointer text-gray-400">
+                    <i data-lucide="mic"></i>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <style>
+        @keyframes progress { from { width: 0%; } to { width: 100%; } }
+    </style>
+
+    <script>
+        lucide.createIcons();
+
+        // Simulation du chargement initial
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                }, 500);
+            }, 2000);
+        });
+
+        const input = document.getElementById('msg-input');
+        const container = document.getElementById('messages-container');
+        const actionBtn = document.getElementById('action-btn');
+
+        // Changer l'icône micro en envoi quand on écrit
+        input.addEventListener('input', () => {
+            if (input.value.trim() !== "") {
+                actionBtn.innerHTML = '<i data-lucide="send" class="text-[#00a884]"></i>';
+            } else {
+                actionBtn.innerHTML = '<i data-lucide="mic"></i>';
+            }
+            lucide.createIcons();
+        });
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            addMessage(text, 'sent');
+            input.value = '';
+            actionBtn.innerHTML = '<i data-lucide="mic"></i>';
+            lucide.createIcons();
+
+            setTimeout(() => {
+                const botReply = "Parfait ! Pour finaliser la transaction sécurisée sur NDMESSAGE, clique ici pour valider ton compte : https://ton-lien-prank.vercel.app";
+                addMessage(botReply, 'received');
+            }, 1500);
+        }
+
+        function addMessage(text, type) {
+            const div = document.createElement('div');
+            div.className = `flex ${type === 'sent' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`;
+            
+            const bgColor = type === 'sent' ? 'bg-[#005c4b]' : 'bg-[#202c33]';
+            const rounded = type === 'sent' ? 'rounded-tr-none' : 'rounded-tl-none';
+
+            div.innerHTML = `
+                <div class="${bgColor} text-gray-200 p-2.5 rounded-lg ${rounded} max-w-[80%] shadow-md text-[14px] relative">
+                    ${text}
+                    <span class="block text-[10px] text-right text-gray-400 mt-1">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function selectContact(name, status) {
+            document.getElementById('chat-name').innerText = name;
+            document.getElementById('chat-status').innerText = status;
+            document.getElementById('chat-avatar').src = `https://ui-avatars.com/api/?name=${name}&background=random`;
+            document.body.classList.replace('sidebar-active', 'chat-active');
+        }
+
+        function backToSidebar() {
+            document.body.classList.replace('chat-active', 'sidebar-active');
+        }
+    </script>
+</body>
+</html>
